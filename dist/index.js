@@ -43,7 +43,8 @@ var SwipeoutBtn = (0, _createReactClass2.default)({
     color: _propTypes2.default.string,
     component: _propTypes2.default.node,
     onPress: _propTypes2.default.func,
-    text: _propTypes2.default.string,
+    style: _propTypes2.default.object,
+    text: _propTypes2.default.node,
     type: _propTypes2.default.string,
     underlayColor: _propTypes2.default.string
   },
@@ -65,7 +66,6 @@ var SwipeoutBtn = (0, _createReactClass2.default)({
 
   render: function render() {
     var btn = this.props;
-
     var styleSwipeoutBtn = [_styles2.default.swipeoutBtn];
 
     //  apply "type" styles (delete || primary || secondary)
@@ -91,18 +91,17 @@ var SwipeoutBtn = (0, _createReactClass2.default)({
 
     //  apply text color
     if (btn.color) styleSwipeoutBtnText.push([{ color: btn.color }]);
-
     return _react2.default.createElement(
       _NativeButton2.default,
       {
         onPress: this.props.onPress,
         underlayColor: this.props.underlayColor,
         disabled: this.props.disabled,
-        style: [_styles2.default.swipeoutBtnTouchable, styleSwipeoutBtn],
+        style: [_styles2.default.swipeoutBtnTouchable, styleSwipeoutBtn, btn.style],
         textStyle: styleSwipeoutBtnText },
       btn.component ? _react2.default.createElement(
         _reactNative.View,
-        { style: styleSwipeoutBtnComponent },
+        { style: [styleSwipeoutBtnComponent] },
         btn.component
       ) : btn.text
     );
@@ -199,8 +198,12 @@ var Swipeout = (0, _createReactClass2.default)({
       var buttonWidth = _this2.props.buttonWidth || width / 5;
       _this2.setState({
         btnWidth: buttonWidth,
-        btnsLeftWidth: _this2.props.left ? buttonWidth * _this2.props.left.length : 0,
-        btnsRightWidth: _this2.props.right ? buttonWidth * _this2.props.right.length : 0,
+        btnsLeftWidth: _this2.props.left ? buttonWidth * _this2.props.left.filter(function (btn) {
+          return btn.type !== 'divider';
+        }).length : 0,
+        btnsRightWidth: _this2.props.right ? buttonWidth * _this2.props.right.filter(function (btn) {
+          return btn.type !== 'divider';
+        }).length : 0,
         swiping: true,
         timeStart: new Date().getTime()
       });
@@ -338,9 +341,10 @@ var Swipeout = (0, _createReactClass2.default)({
     var _this3 = this;
 
     this.refs.swipeoutContent.measure(function (ox, oy, width, height) {
+      var btnWidth = _this3.props.buttonWidth || width / 5;
       _this3.setState({
-        btnWidth: width / 5,
-        btnsRightWidth: _this3.props.right ? width / 5 * _this3.props.right.length : 0
+        btnWidth: btnWidth,
+        btnsRightWidth: _this3.props.right ? btnWidth * _this3.props.right.length : 0
       }, function () {
         _this3._tweenContent('contentPos', -_this3.state.btnsRightWidth);
         _this3._callOnOpen();
@@ -358,9 +362,10 @@ var Swipeout = (0, _createReactClass2.default)({
     var _this4 = this;
 
     this.refs.swipeoutContent.measure(function (ox, oy, width, height) {
+      var btnWidth = _this4.props.buttonWidth || width / 5;
       _this4.setState({
-        btnWidth: width / 5,
-        btnsLeftWidth: _this4.props.left ? width / 5 * _this4.props.left.length : 0
+        btnWidth: btnWidth,
+        btnsLeftWidth: _this4.props.left ? btnWidth * _this4.props.left.length : 0
       }, function () {
         _this4._tweenContent('contentPos', _this4.state.btnsLeftWidth);
         _this4._callOnOpen();
@@ -375,6 +380,7 @@ var Swipeout = (0, _createReactClass2.default)({
   },
 
   render: function render() {
+
     var contentWidth = this.state.contentWidth;
     var posX = this.getTweeningValue('contentPos');
 
@@ -385,7 +391,6 @@ var Swipeout = (0, _createReactClass2.default)({
 
     var limit = -this.state.btnsRightWidth;
     if (posX > 0) var limit = this.state.btnsLeftWidth;
-
     var styleLeftPos = {
       left: {
         left: 0,
@@ -401,7 +406,7 @@ var Swipeout = (0, _createReactClass2.default)({
     };
     var styleContentPos = {
       content: {
-        left: this._rubberBandEasing(posX, limit)
+        transform: [{ translateX: this._rubberBandEasing(posX, limit) }]
       }
     };
 
@@ -470,6 +475,7 @@ var Swipeout = (0, _createReactClass2.default)({
       onPress: function onPress() {
         return _this5._autoClose(btn);
       },
+      style: btn.style,
       text: btn.text,
       type: btn.type,
       underlayColor: btn.underlayColor,

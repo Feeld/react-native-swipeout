@@ -24,6 +24,7 @@ const SwipeoutBtn = createReactClass({
     color: PropTypes.string,
     component: PropTypes.node,
     onPress: PropTypes.func,
+    style: PropTypes.object,
     text: PropTypes.node,
     type: PropTypes.string,
     underlayColor: PropTypes.string,
@@ -46,7 +47,6 @@ const SwipeoutBtn = createReactClass({
 
   render: function() {
     var btn = this.props;
-
     var styleSwipeoutBtn = [styles.swipeoutBtn];
 
     //  apply "type" styles (delete || primary || secondary)
@@ -74,17 +74,16 @@ const SwipeoutBtn = createReactClass({
 
     //  apply text color
     if (btn.color) styleSwipeoutBtnText.push([{ color: btn.color }]);
-
     return  (
       <NativeButton
         onPress={this.props.onPress}
         underlayColor={this.props.underlayColor}
         disabled={this.props.disabled}
-        style={[styles.swipeoutBtnTouchable, styleSwipeoutBtn]}
+        style={[styles.swipeoutBtnTouchable, styleSwipeoutBtn, btn.style]}
         textStyle={styleSwipeoutBtnText}>
         {
           (btn.component ?
-            <View style={styleSwipeoutBtnComponent}>{btn.component}</View>
+            <View style={[styleSwipeoutBtnComponent]}>{btn.component}</View>
             :
             btn.text
           )
@@ -171,8 +170,10 @@ const Swipeout = createReactClass({
       let buttonWidth = this.props.buttonWidth || (width/5);
       this.setState({
         btnWidth: buttonWidth,
-        btnsLeftWidth: this.props.left ? buttonWidth*this.props.left.length : 0,
-        btnsRightWidth: this.props.right ? buttonWidth*this.props.right.length : 0,
+        btnsLeftWidth: this.props.left ? buttonWidth*
+          this.props.left.filter(btn => btn.type !== 'divider').length : 0,
+        btnsRightWidth: this.props.right ? buttonWidth*
+          this.props.right.filter(btn => btn.type !== 'divider').length : 0,
         swiping: true,
         timeStart: (new Date()).getTime(),
       });
@@ -304,7 +305,6 @@ const Swipeout = createReactClass({
   _openRight: function() {
     this.refs.swipeoutContent.measure((ox, oy, width, height) => {
       let btnWidth = this.props.buttonWidth || (width/5);
-
       this.setState({
         btnWidth,
         btnsRightWidth: this.props.right ? btnWidth*this.props.right.length : 0,
@@ -324,7 +324,6 @@ const Swipeout = createReactClass({
   _openLeft: function() {
     this.refs.swipeoutContent.measure((ox, oy, width, height) => {
       let btnWidth = this.props.buttonWidth || (width/5);
-
       this.setState({
         btnWidth,
         btnsLeftWidth: this.props.left ? btnWidth*this.props.left.length : 0,
@@ -342,6 +341,7 @@ const Swipeout = createReactClass({
   },
 
   render: function() {
+
     var contentWidth = this.state.contentWidth;
     var posX = this.getTweeningValue('contentPos');
 
@@ -352,7 +352,6 @@ const Swipeout = createReactClass({
 
     var limit = -this.state.btnsRightWidth;
     if (posX > 0) var limit = this.state.btnsLeftWidth;
-
     var styleLeftPos = {
       left: {
         left: 0,
@@ -430,6 +429,7 @@ const Swipeout = createReactClass({
         height={this.state.contentHeight}
         key={i}
         onPress={() => this._autoClose(btn)}
+        style={btn.style}
         text={btn.text}
         type={btn.type}
         underlayColor={btn.underlayColor}
